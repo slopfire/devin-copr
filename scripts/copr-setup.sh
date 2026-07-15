@@ -15,5 +15,5 @@ copr-cli create \
   --chroot fedora-43-x86_64 \
   "$project"
 
-gh secret set COPR_CONFIG --body ~/.config/copr
+gh secret set COPR_CONFIG < ~/.config/copr
 gh secret set COPR_PROJECT --body "$copr_project"

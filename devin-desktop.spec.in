@@ -6,6 +6,8 @@
 %global __brp_strip_lto %{nil}
 %global __brp_mangle_shebangs %{nil}
 %global __brp_check_rpaths %{nil}
+%global __requires_exclude_from ^/opt/Devin/.*$
+%global __provides_exclude_from ^/opt/Devin/.*$
 
 Name:           devin-desktop
 Version:        @VERSION@
@@ -32,7 +34,6 @@ official upstream x86_64 Linux tarball.
 rm -rf %{buildroot}
 mkdir -p %{buildroot}/opt/Devin
 cp -a Devin/* %{buildroot}/opt/Devin/
-chown -R root:root %{buildroot}/opt/Devin
 chmod 4755 %{buildroot}/opt/Devin/chrome-sandbox
 
 install -Dpm0755 %{SOURCE1} %{buildroot}%{_bindir}/devin-desktop
@@ -40,13 +41,12 @@ install -Dpm0644 %{SOURCE2} %{buildroot}%{_datadir}/applications/devin-desktop.d
 install -Dpm0644 Devin/resources/app/resources/linux/code.png %{buildroot}%{_datadir}/pixmaps/devin-desktop.png
 install -Dpm0644 Devin/resources/app/LICENSE.txt %{buildroot}%{_licensedir}/%{name}/LICENSE
 
-find %{buildroot} -type f -printf '/%%P\n' \
-  | sed \
-    -e 's#^/opt/Devin/chrome-sandbox$#%%attr(4755, root, root) /opt/Devin/chrome-sandbox#' \
-    -e 's#^/usr/share/licenses/devin-desktop/LICENSE$#%%license /usr/share/licenses/devin-desktop/LICENSE#' \
-  | sort > filelist.txt
-
-%files -f filelist.txt
+%files
+/opt/Devin
+%{_bindir}/devin-desktop
+%{_datadir}/applications/devin-desktop.desktop
+%{_datadir}/pixmaps/devin-desktop.png
+%license %{_licensedir}/%{name}/LICENSE
 
 %changelog
 * @CHANGELOG_DATE@ Devin Desktop COPR Maintainers <copr@example.invalid> - @VERSION@-1.@RELEASE_DATE@
