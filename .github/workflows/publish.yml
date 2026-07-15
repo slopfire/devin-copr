@@ -1,0 +1,94 @@
+name: Publish Devin Desktop to COPR
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Submit even if this release was already recorded
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: devin-desktop-copr
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install release lookup tools
+        run: dnf --assumeyes install curl git jq
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - name: Check for new Devin Desktop release
+        id: check
+        env:
+          FORCE: ${{ inputs.force || 'false' }}
+        run: scripts/update-check.sh >> "$GITHUB_OUTPUT"
+      - name: Install RPM and COPR tooling
+        if: steps.check.outputs.should_build == 'true'
+        run: dnf --assumeyes install rpm-build rpmdevtools copr-cli
+      - name: Build source RPM
+        if: steps.check.outputs.should_build == 'true'
+        run: ./scripts/build-srpm.sh "${{ steps.check.outputs.version }}" "${{ steps.check.outputs.timestamp }}" "${{ steps.check.outputs.url }}" "${{ steps.check.outputs.sha256 }}"
+      - name: Configure COPR credentials
+        if: steps.check.outputs.should_build == 'true'
+        env:
+          COPR_CONFIG: ${{ secrets.COPR_CONFIG }}
+        run: |
+          set -euo pipefail
+          test -n "$COPR_CONFIG"
+          install -d -m 0700 ~/.config
+          printf '%s' "$COPR_CONFIG" > ~/.config/copr
+          chmod 0600 ~/.config/copr
+      - name: Submit source RPM to COPR
+        if: steps.check.outputs.should_build == 'true'
+        env:
+          COPR_PROJECT: ${{ secrets.COPR_PROJECT }}
+        run: |
+          set -euo pipefail
+          test -n "$COPR_PROJECT"
+          copr build "$COPR_PROJECT" rpmbuild/SRPMS/*.src.rpm
+      - name: Record successful submission
+        if: steps.check.outputs.should_build == 'true'
+        env:
+          TAG: ${{ steps.check.outputs.version }}
+          TIMESTAMP: ${{ steps.check.outputs.timestamp }}
+          COMMIT: ${{ steps.check.outputs.commit }}
+          URL: ${{ steps.check.outputs.url }}
+          SHA256: ${{ steps.check.outputs.sha256 }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+            git init
+            git remote add origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+            git fetch --depth=1 origin main
+            git reset --hard FETCH_HEAD
+            git branch -M main
+          fi
+          jq -n \
+            --arg windsurfVersion "$TAG" \
+            --arg timestamp "$TIMESTAMP" \
+            --arg version "$COMMIT" \
+            --arg url "$URL" \
+            --arg sha256 "$SHA256" \
+            '{windsurfVersion: $windsurfVersion, timestamp: ($timestamp | tonumber), version: $version, url: $url, sha256hash: $sha256}' \
+            > packaging/last-built.json
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add packaging/last-built.json
+          git commit -m "chore: record Devin Desktop $TAG"
+          git push

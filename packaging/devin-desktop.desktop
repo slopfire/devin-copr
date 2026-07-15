@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=Devin Desktop
+Comment=Cognition Devin Desktop IDE
+Exec=devin-desktop %F
+Icon=devin-desktop
+Terminal=false
+Categories=Development;IDE;
+StartupNotify=true
+StartupWMClass=Devin
+MimeType=text/plain;inode/directory;
+Keywords=devin;ide;ai;code;

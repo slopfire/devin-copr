@@ -1,0 +1,53 @@
+%global release_date @RELEASE_DATE@
+%global _build_id_links none
+%global debug_package %{nil}
+%global __brp_strip %{nil}
+%global __brp_strip_comment_note %{nil}
+%global __brp_strip_lto %{nil}
+%global __brp_mangle_shebangs %{nil}
+%global __brp_check_rpaths %{nil}
+
+Name:           devin-desktop
+Version:        @VERSION@
+Release:        1.%{release_date}%{?dist}
+Summary:        Cognition Devin Desktop IDE
+
+License:        MIT
+URL:            https://devin.ai/
+Source0:        Devin-linux-x64-%{version}.tar.gz
+Source1:        devin-desktop
+Source2:        devin-desktop.desktop
+ExclusiveArch:  x86_64
+
+Requires:       glibc >= 2.28
+
+%description
+Devin Desktop is an agentic IDE built by Cognition. This package repackages the
+official upstream x86_64 Linux tarball.
+
+%prep
+%autosetup -c -n Devin
+
+%install
+rm -rf %{buildroot}
+mkdir -p %{buildroot}/opt/Devin
+cp -a Devin/* %{buildroot}/opt/Devin/
+chown -R root:root %{buildroot}/opt/Devin
+chmod 4755 %{buildroot}/opt/Devin/chrome-sandbox
+
+install -Dpm0755 %{SOURCE1} %{buildroot}%{_bindir}/devin-desktop
+install -Dpm0644 %{SOURCE2} %{buildroot}%{_datadir}/applications/devin-desktop.desktop
+install -Dpm0644 Devin/resources/app/resources/linux/code.png %{buildroot}%{_datadir}/pixmaps/devin-desktop.png
+install -Dpm0644 Devin/resources/app/LICENSE.txt %{buildroot}%{_licensedir}/%{name}/LICENSE
+
+find %{buildroot} -type f -printf '/%%P\n' \
+  | sed \
+    -e 's#^/opt/Devin/chrome-sandbox$#%%attr(4755, root, root) /opt/Devin/chrome-sandbox#' \
+    -e 's#^/usr/share/licenses/devin-desktop/LICENSE$#%%license /usr/share/licenses/devin-desktop/LICENSE#' \
+  | sort > filelist.txt
+
+%files -f filelist.txt
+
+%changelog
+* @CHANGELOG_DATE@ Devin Desktop COPR Maintainers <copr@example.invalid> - @VERSION@-1.@RELEASE_DATE@
+- Package upstream Devin Desktop @VERSION@

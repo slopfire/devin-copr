@@ -1,0 +1,29 @@
+name: RPM packaging CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Install Git
+        run: dnf --assumeyes install git
+      - uses: actions/checkout@v4
+      - name: Install RPM tooling
+        run: dnf --assumeyes install rpm-build rpmdevtools
+      - name: Render and validate the RPM spec
+        run: |
+          ./scripts/render-spec.sh "3.4.27" "20260706T100623" "Mon Jul 06 2026" /tmp/devin-desktop.spec
+          rpmspec --parse /tmp/devin-desktop.spec >/dev/null
+      - name: Check shell scripts
+        run: bash -n scripts/*.sh packaging/devin-desktop
