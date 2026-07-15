@@ -9,9 +9,9 @@ upstream Linux tarball.
 
    ```bash
    copr-cli create \
-     --chroot fedora-40-x86_64 \
-     --chroot fedora-41-x86_64 \
-     --chroot fedora-42-x86_64 \
+     --chroot fedora-rawhide-x86_64 \
+     --chroot fedora-44-x86_64 \
+     --chroot fedora-43-x86_64 \
      devin-desktop
    ```
 
