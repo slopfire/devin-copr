@@ -1,7 +1,7 @@
 {
-  "windsurfVersion": "3.10.35",
-  "timestamp": 1790219383000,
-  "version": "dfa4a2d639b8a05ab72387c12f1aafca1b4c3cb9",
-  "url": "https://windsurf-stable.codeiumdata.com/linux-x64/stable/dfa4a2d639b8a05ab72387c12f1aafca1b4c3cb9/Devin-linux-x64-3.10.35.tar.gz",
-  "sha256hash": "fd50eb548a6a95efa7df24e85273f9d2464247350de77751d825f3556a826ec6"
+  "windsurfVersion": "3.10.48",
+  "timestamp": 1790651855000,
+  "version": "fcf7ba39e6150055fad817f8716385b4d320d46d",
+  "url": "https://windsurf-stable.codeiumdata.com/linux-x64/stable/fcf7ba39e6150055fad817f8716385b4d320d46d/Devin-linux-x64-3.10.48.tar.gz",
+  "sha256hash": "98e394baeefc87558fb06c1a7bc89cfed5bd8c20172ac036173636547fcb69c0"
 }
